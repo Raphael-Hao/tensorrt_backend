@@ -1,28 +1,25 @@
 # Copyright 2021, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of NVIDIA CORPORATION nor the names of its
-#    contributors may be used to endorse or promote products derived
-#    from this software without specific prior written permission.
+# modification, are permitted provided that the following conditions are met: *
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer. * Redistributions in binary
+# form must reproduce the above copyright notice, this list of conditions and
+# the following disclaimer in the documentation and/or other materials provided
+# with the distribution. * Neither the name of NVIDIA CORPORATION nor the names
+# of its contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
 #
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY
-# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-# PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY EXPRESS
+# OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+# EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+# INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+# EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 cmake_minimum_required(VERSION 3.17)
 
@@ -34,43 +31,57 @@ project(tritontensorrtbackend LANGUAGES C CXX)
 option(TRITON_ENABLE_GPU "Enable GPU support in backend." ON)
 option(TRITON_ENABLE_STATS "Include statistics collections in backend." ON)
 option(TRITON_ENABLE_NVTX "Include nvtx markers collection in backend." OFF)
-set(TRITON_TENSORRT_LIB_PATHS "" CACHE PATH "Paths to TensorRT libraries. Multiple paths may be specified by separating them with a semicolon.")
-set(TRITON_TENSORRT_INCLUDE_PATHS "" CACHE PATH "Paths to TensorRT includes. Multiple paths may be specified by separating them with a semicolon.")
+set(TRITON_TENSORRT_LIB_PATHS
+    ""
+    CACHE
+      PATH
+      "Paths to TensorRT libraries. Multiple paths may be specified by separating them with a semicolon."
+)
+set(TRITON_TENSORRT_INCLUDE_PATHS
+    ""
+    CACHE
+      PATH
+      "Paths to TensorRT includes. Multiple paths may be specified by separating them with a semicolon."
+)
 
-set(TRITON_BACKEND_REPO_TAG "lego" CACHE STRING "Tag for triton-inference-server/backend repo.")
-set(TRITON_CORE_REPO_TAG "lego" CACHE STRING "Tag for triton-inference-server/core repo.")
-set(TRITON_COMMON_REPO_TAG "lego" CACHE STRING "Tag for triton-inference-server/common repo.")
+set(TRITON_BACKEND_REPO_TAG
+    "lego"
+    CACHE STRING "Tag for triton-inference-server/backend repo.")
+set(TRITON_CORE_REPO_TAG
+    "lego"
+    CACHE STRING "Tag for triton-inference-server/core repo.")
+set(TRITON_COMMON_REPO_TAG
+    "lego"
+    CACHE STRING "Tag for triton-inference-server/common repo.")
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
 set(TRITON_TENSORRT_BACKEND_LIBNAME triton_tensorrt)
-set(TRITON_TENSORRT_BACKEND_INSTALLDIR ${CMAKE_INSTALL_PREFIX}/backends/tensorrt)
+set(TRITON_TENSORRT_BACKEND_INSTALLDIR
+    ${CMAKE_INSTALL_PREFIX}/backends/tensorrt)
 
 #
 # Dependencies
 #
-# FetchContent's composibility isn't very good. We must include the
-# transitive closure of all repos so that we can override the tag.
+# FetchContent's composibility isn't very good. We must include the transitive
+# closure of all repos so that we can override the tag.
 #
 include(FetchContent)
 
 FetchContent_Declare(
   repo-common
   GIT_REPOSITORY https://github.com/Raphael-Hao/common.git
-  GIT_TAG ${TRITON_COMMON_REPO_TAG}
-)
+  GIT_TAG ${TRITON_COMMON_REPO_TAG})
 FetchContent_Declare(
   repo-core
   GIT_REPOSITORY https://github.com/Raphael-Hao/core.git
-  GIT_TAG ${TRITON_CORE_REPO_TAG}
-)
+  GIT_TAG ${TRITON_CORE_REPO_TAG})
 FetchContent_Declare(
   repo-backend
   GIT_REPOSITORY https://github.com/Raphael-Hao/backend.git
-  GIT_TAG ${TRITON_BACKEND_REPO_TAG}
-)
+  GIT_TAG ${TRITON_BACKEND_REPO_TAG})
 FetchContent_MakeAvailable(repo-common repo-core repo-backend)
 
 #
@@ -81,13 +92,14 @@ if(${TRITON_ENABLE_GPU})
   message(STATUS "Using CUDA ${CUDA_VERSION}")
   set(CUDA_NVCC_FLAGS -std=c++11)
 
-  if(CUDA_VERSION VERSION_GREATER "10.1" OR CUDA_VERSION VERSION_EQUAL "10.1")
-    add_definitions(-DTRITON_ENABLE_CUDA_GRAPH=1)
-  else()
-    message(WARNING "CUDA ${CUDA_VERSION} does not support CUDA graphs.")
-  endif()
+  # NOTE disable the cuda graph inside the tensorrt backend if(CUDA_VERSION
+  # VERSION_GREATER "10.1" OR CUDA_VERSION VERSION_EQUAL "10.1")
+  # add_definitions(-DTRITON_ENABLE_CUDA_GRAPH=1) else() message(WARNING "CUDA
+  # ${CUDA_VERSION} does not support CUDA graphs.") endif()
 else()
-  message( FATAL_ERROR "TensorRT backend requires TRITON_ENABLE_GPU=1, CMake will exit." )
+  message(
+    FATAL_ERROR
+      "TensorRT backend requires TRITON_ENABLE_GPU=1, CMake will exit.")
 endif() # TRITON_ENABLE_GPU
 
 if(${TRITON_ENABLE_NVTX})
@@ -97,7 +109,8 @@ endif() # TRITON_ENABLE_NVTX
 #
 # Shared library implementing the Triton Backend API
 #
-configure_file(src/libtriton_tensorrt.ldscript libtriton_tensorrt.ldscript COPYONLY)
+configure_file(src/libtriton_tensorrt.ldscript libtriton_tensorrt.ldscript
+               COPYONLY)
 
 add_library(
   triton-tensorrt-backend SHARED
@@ -111,91 +124,76 @@ add_library(
   src/loader.cc
   src/loader.h
   src/logging.cc
-  src/logging.h
-)
+  src/logging.h)
 
-add_library(
-  TritonTensorRTBackend::triton-tensorrt-backend ALIAS triton-tensorrt-backend
-)
+add_library(TritonTensorRTBackend::triton-tensorrt-backend ALIAS
+            triton-tensorrt-backend)
 
-target_include_directories(
-  triton-tensorrt-backend
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
+target_include_directories(triton-tensorrt-backend
+                           PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_include_directories(
-    triton-tensorrt-backend
-    PRIVATE ${TRITON_TENSORRT_INCLUDE_PATHS}
-  )
+target_include_directories(triton-tensorrt-backend
+                           PRIVATE ${TRITON_TENSORRT_INCLUDE_PATHS})
 
 target_compile_features(triton-tensorrt-backend PRIVATE cxx_std_11)
 target_compile_options(
-  triton-tensorrt-backend PRIVATE
-  $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
-    -Wall -Wextra -Wno-unused-parameter -Wno-type-limits -Werror>
-  $<$<CXX_COMPILER_ID:MSVC>:/Wall /D_WIN32_WINNT=0x0A00 /EHsc>
-)
+  triton-tensorrt-backend
+  PRIVATE
+    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+    -Wall
+    -Wextra
+    -Wno-unused-parameter
+    -Wno-type-limits
+    -Werror>
+    $<$<CXX_COMPILER_ID:MSVC>:/Wall
+    /D_WIN32_WINNT=0x0A00
+    /EHsc>)
 
 # C/C++ defines that are used directly by this backend.
-target_compile_definitions(
-    triton-tensorrt-backend
-    PRIVATE TRITON_ENABLE_GPU=1
-)
+target_compile_definitions(triton-tensorrt-backend PRIVATE TRITON_ENABLE_GPU=1)
 
-if (WIN32)
+if(WIN32)
   set_target_properties(
     triton-tensorrt-backend
-    PROPERTIES
-      POSITION_INDEPENDENT_CODE ON
-      OUTPUT_NAME ${TRITON_TENSORRT_BACKEND_LIBNAME}
-      SKIP_BUILD_RPATH TRUE
-      BUILD_WITH_INSTALL_RPATH TRUE
-      INSTALL_RPATH_USE_LINK_PATH FALSE
-      INSTALL_RPATH "$\{ORIGIN\}"
-  )
-else ()
+    PROPERTIES POSITION_INDEPENDENT_CODE ON
+               OUTPUT_NAME ${TRITON_TENSORRT_BACKEND_LIBNAME}
+               SKIP_BUILD_RPATH TRUE
+               BUILD_WITH_INSTALL_RPATH TRUE
+               INSTALL_RPATH_USE_LINK_PATH FALSE
+               INSTALL_RPATH "$\{ORIGIN\}")
+else()
   set_target_properties(
     triton-tensorrt-backend
-    PROPERTIES
-      POSITION_INDEPENDENT_CODE ON
-      OUTPUT_NAME ${TRITON_TENSORRT_BACKEND_LIBNAME}
-      SKIP_BUILD_RPATH TRUE
-      BUILD_WITH_INSTALL_RPATH TRUE
-      INSTALL_RPATH_USE_LINK_PATH FALSE
-      INSTALL_RPATH "$\{ORIGIN\}"
-      LINK_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/libtriton_tensorrt.ldscript
-      LINK_FLAGS "-Wl,--version-script libtriton_tensorrt.ldscript"
-  )
+    PROPERTIES POSITION_INDEPENDENT_CODE ON
+               OUTPUT_NAME ${TRITON_TENSORRT_BACKEND_LIBNAME}
+               SKIP_BUILD_RPATH TRUE
+               BUILD_WITH_INSTALL_RPATH TRUE
+               INSTALL_RPATH_USE_LINK_PATH FALSE
+               INSTALL_RPATH "$\{ORIGIN\}"
+               LINK_DEPENDS
+               ${CMAKE_CURRENT_BINARY_DIR}/libtriton_tensorrt.ldscript
+               LINK_FLAGS "-Wl,--version-script libtriton_tensorrt.ldscript")
 endif()
 
-FOREACH(p ${TRITON_TENSORRT_LIB_PATHS})
-    set(TRITON_TENSORRT_LDFLAGS ${TRITON_TENSORRT_LDFLAGS} "-L${p}")
-ENDFOREACH(p)
+foreach(p ${TRITON_TENSORRT_LIB_PATHS})
+  set(TRITON_TENSORRT_LDFLAGS ${TRITON_TENSORRT_LDFLAGS} "-L${p}")
+endforeach(p)
 
 find_library(NVINFER_LIBRARY NAMES nvinfer)
 find_library(NVINFER_PLUGIN_LIBRARY NAMES nvinfer_plugin)
 target_link_libraries(
   triton-tensorrt-backend
-  PRIVATE
-    triton-core-serverapi   # from repo-core
-    triton-core-serverstub  # from repo-core
-    triton-backend-utils    # from repo-backend
-    -lpthread
-    ${NVINFER_LIBRARY}
-    ${NVINFER_PLUGIN_LIBRARY}
-)
+  PRIVATE triton-core-serverapi # from repo-core
+          triton-core-serverstub # from repo-core
+          triton-backend-utils # from repo-backend
+          -lpthread
+          ${NVINFER_LIBRARY}
+          ${NVINFER_PLUGIN_LIBRARY})
 
-target_link_libraries(
-    triton-tensorrt-backend
-    PRIVATE ${TRITON_TENSORRT_LDFLAGS}
-)
+target_link_libraries(triton-tensorrt-backend
+                      PRIVATE ${TRITON_TENSORRT_LDFLAGS})
 
-target_link_libraries(
-    triton-tensorrt-backend
-    PRIVATE
-      CUDA::cudart
-)
-
+target_link_libraries(triton-tensorrt-backend PRIVATE CUDA::cudart)
 
 #
 # Install
@@ -203,49 +201,34 @@ target_link_libraries(
 include(GNUInstallDirs)
 set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/TritonTensorRTBackend)
 
-if (NOT WIN32)
+if(NOT WIN32)
   install(
-    TARGETS
-      triton-tensorrt-backend
-    EXPORT
-      triton-tensorrt-backend-targets
+    TARGETS triton-tensorrt-backend
+    EXPORT triton-tensorrt-backend-targets
     LIBRARY DESTINATION ${TRITON_TENSORRT_BACKEND_INSTALLDIR}
-    ARCHIVE DESTINATION ${TRITON_TENSORRT_BACKEND_INSTALLDIR}
-  )
+    ARCHIVE DESTINATION ${TRITON_TENSORRT_BACKEND_INSTALLDIR})
 else()
   install(
-    TARGETS
-      triton-tensorrt-backend
-    EXPORT
-      triton-tensorrt-backend-targets
+    TARGETS triton-tensorrt-backend
+    EXPORT triton-tensorrt-backend-targets
     RUNTIME DESTINATION ${TRITON_TENSORRT_BACKEND_INSTALLDIR}
-    ARCHIVE DESTINATION ${TRITON_TENSORRT_BACKEND_INSTALLDIR}
-  )
+    ARCHIVE DESTINATION ${TRITON_TENSORRT_BACKEND_INSTALLDIR})
 endif() # WIN32
 
 install(
-  EXPORT
-    triton-tensorrt-backend-targets
-  FILE
-    TritonTensorRTBackendTargets.cmake
-  NAMESPACE
-    TritonTensorRTBackend::
-  DESTINATION
-    ${INSTALL_CONFIGDIR}
-)
+  EXPORT triton-tensorrt-backend-targets
+  FILE TritonTensorRTBackendTargets.cmake
+  NAMESPACE TritonTensorRTBackend::
+  DESTINATION ${INSTALL_CONFIGDIR})
 
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
   ${CMAKE_CURRENT_LIST_DIR}/cmake/TritonTensorRTBackendConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/TritonTensorRTBackendConfig.cmake
-  INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
-)
+  INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
 
-install(
-  FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/TritonTensorRTBackendConfig.cmake
-  DESTINATION ${INSTALL_CONFIGDIR}
-)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/TritonTensorRTBackendConfig.cmake
+        DESTINATION ${INSTALL_CONFIGDIR})
 
 #
 # Export from build tree
@@ -253,7 +236,6 @@ install(
 export(
   EXPORT triton-tensorrt-backend-targets
   FILE ${CMAKE_CURRENT_BINARY_DIR}/TritonTensorRTBackendTargets.cmake
-  NAMESPACE TritonTensorRTBackend::
-)
+  NAMESPACE TritonTensorRTBackend::)
 
 export(PACKAGE TritonTensorRTBackend)
